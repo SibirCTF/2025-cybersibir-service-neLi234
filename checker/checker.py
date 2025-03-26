@@ -258,7 +258,7 @@ def main():
                 client.put(args.f_id, args.flag)
                 client.check()
             except socket.timeout:
-                service_mumble()
+                service_down()
             except Exception as e:
                 print(e)
                 service_down()
@@ -267,7 +267,7 @@ def main():
                 client.get(args.f_id, args.flag)
                 client.check()
             except socket.timeout:
-                service_mumble()
+                service_down()
             except Exception as e:
                 print(e)
                 service_down()
