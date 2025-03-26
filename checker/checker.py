@@ -30,6 +30,10 @@ def service_mumble():
 def service_down():
     print("[service is down] - 104")
     exit(104)
+    
+def wtf():
+    print("[wtf] - 105")
+    exit(105)
 
 def initialize_db():
     db = sqlite3.connect("NeuroLinks.db")
@@ -169,7 +173,7 @@ class Client:
         cursor = self.db.execute('SELECT id FROM checker ORDER BY id DESC LIMIT 1;')
         db_response = cursor.fetchone()
         cursor.close()
-        if not db_response[0]:
+        if not db_response or not db_response[0]:
             vuln = 0
         else:
             vuln = db_response[0] % 2
@@ -207,7 +211,6 @@ class Client:
                 internalize_result = s.internalize(f"flag={flag}")
                 if not (match:= re.match(r"Internalized: ([0-9a-fA-F]+)$", internalize_result)):
                     service_corrupt()
-            print(match[1])
             cursor = self.db.execute('INSERT INTO checker (host, flag_id, flag, username, password, vuln, key) VALUES (?, ?, ?, ?, ?, ?, ?)', (self.host, flag_id, flag, username, password, vuln, match[1]))
             self.db.commit()
             cursor.close()
@@ -217,6 +220,8 @@ class Client:
         cursor = self.db.execute('SELECT username, password, vuln, key FROM checker WHERE flag=?', ([flag]))
         db_response = cursor.fetchone()
         cursor.close()
+        if not db_response:
+            wtf()
         username = db_response[0]
         password = db_response[1]
         vuln = db_response[2]
