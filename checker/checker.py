@@ -35,8 +35,8 @@ def wtf():
     print("[wtf] - 105")
     exit(105)
 
-def initialize_db():
-    db = sqlite3.connect("NeuroLinks.db")
+def initialize_db(host):
+    db = sqlite3.connect(f"{host}_NeuroLinks.db")
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS checker (
@@ -131,10 +131,10 @@ class Client:
         self.host = host
         self.port = port
         self.timeout = timeout
-        self.db = initialize_db()
+        self.db = initialize_db(host)
         
     def __enter__(self):
-        self.db = initialize_db()
+        self.db = initialize_db(self.host)
         return self
 
     def __exit__(self, type, value, traceback):
