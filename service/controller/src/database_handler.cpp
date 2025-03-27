@@ -27,17 +27,17 @@ static int sql_callback_wrapper(void* data, int argc, char** argv, char** colNam
 std::string DatabaseHandler::sanitize_sql_input(const std::string& input) {
     std::string output;
     output.reserve(input.length());
-    
+    int8_t counter = 0;
     for (char c : input) {
         switch (c) {
             case '\'': output += "''"; break;
             case ';': break;
             case '-':
-                if (!output.empty() && output.back() == '-') output.pop_back();
+                if (!output.empty() && (output.back() == '-')) output.pop_back();
                 else output += c;
                 break;
             default:
-                if (isprint(c)) output += c;
+                output += c;
                 break;
         }
     }
@@ -61,10 +61,11 @@ void DatabaseHandler::initialize_database() {
         "PasswordHash TEXT NOT NULL);";
 
     const char* sql_messages = 
-        "CREATE TABLE IF NOT EXISTS Messages ("
+        "CREATE TABLE IF NOT EXISTS Thoughts ("
         "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
         "Username TEXT NOT NULL, "
-        "Message TEXT NOT NULL, "
+        "Thought TEXT NOT NULL, "
+        "Ad TEXT NOT NULL, "
         "FOREIGN KEY(Username) REFERENCES Users(Username));";
 
     if (sqlite3_exec(db, sql_users, nullptr, nullptr, &err_msg) != SQLITE_OK) {
@@ -147,16 +148,16 @@ bool DatabaseHandler::authenticate_user(const std::string& username, const std::
     return auth_result.stored_hash == auth_result.input_hash;
 }
 
-bool DatabaseHandler::add_message(const std::string& username, const std::string& message) {
+bool DatabaseHandler::add_intrusive_thought(const std::string& username, const std::string& thought, const std::string& ad) {
     std::string safe_username = sanitize_sql_input(username);
-    std::string safe_message = sanitize_sql_input(message);
-    
-    std::string sql = "INSERT INTO Messages (Username, Message) VALUES ('" + 
-                     safe_username + "', '" + safe_message + "');";
+    std::string safe_thought = sanitize_sql_input(thought);
+    std::string safe_ad = sanitize_sql_input(ad);
+    std::string sql = "INSERT INTO Thoughts (Username, Thought, Ad) VALUES ('" + 
+                     safe_username + "', '" + safe_thought + "', '" + safe_ad + "');";
     return execute_sql(sql);
 }
 
-std::string DatabaseHandler::get_message(const std::string& username, const std::string& message) {
+std::string DatabaseHandler::get_ad(const std::string& username, const std::string& message) {
     struct MessageResult {
         std::string content;
     } result;
@@ -170,16 +171,16 @@ std::string DatabaseHandler::get_message(const std::string& username, const std:
     };
 
     std::string safe_username = sanitize_sql_input(username);
-    std::string safe_message = sanitize_sql_input(message);
+    std::string safe_thought = sanitize_sql_input(message);
     
-    std::string sql = "SELECT Message FROM Messages WHERE Username = '" + 
-                     safe_username + "' AND Message = '" + safe_message + "';";
+    std::string sql = "SELECT Ad FROM Thoughts WHERE Username = '" + 
+                     safe_username + "' AND Thought = '" + safe_thought + "';";
 
     execute_sql(sql, callback, &result);
     return result.content;
 }
 
-std::vector<std::string> DatabaseHandler::get_all_messages(const std::string& username, const std::string& message) {
+std::vector<std::string> DatabaseHandler::get_all_ads(const std::string& username, const std::string& message) {
     struct MessagesResult {
         std::vector<std::string> messages;
     } result;
@@ -193,11 +194,11 @@ std::vector<std::string> DatabaseHandler::get_all_messages(const std::string& us
     };
 
     std::string safe_username = sanitize_sql_input(username);
-    std::string sql = "SELECT Message FROM Messages WHERE Username = '" + 
+    std::string sql = "SELECT Ad FROM Thoughts WHERE Username = '" + 
                      safe_username;
     if (!message.empty()) {
         std::string safe_message = sanitize_sql_input(message);
-        sql += "' AND Message LIKE '" + safe_message + "' ORDER BY ID ASC;";
+        sql += "' AND Thought LIKE '" + safe_message + "' ORDER BY ID ASC;";
     }
     else {
         sql += "' ORDER BY ID ASC;";
@@ -205,13 +206,4 @@ std::vector<std::string> DatabaseHandler::get_all_messages(const std::string& us
 
     execute_sql(sql, callback, &result);
     return result.messages;
-}
-
-bool DatabaseHandler::internalize_message(const std::string& username, const std::string& message) {
-    std::string safe_username = sanitize_sql_input(username);
-    std::string safe_message = sanitize_sql_input(message);
-    
-    std::string sql = "INSERT INTO Messages (Username, Message) VALUES ('" + 
-                     safe_username + "', '[INTERNALIZED] " + safe_message + "');";
-    return execute_sql(sql);
 }

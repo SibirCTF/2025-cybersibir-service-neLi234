@@ -14,10 +14,9 @@ public:
     static bool register_user(const std::string& username, const std::string& password);
     static bool authenticate_user(const std::string& username, const std::string& password);
     
-    static bool add_message(const std::string& username, const std::string& message);
-    static std::string get_message(const std::string& username, const std::string& message);
-    static std::vector<std::string> get_all_messages(const std::string& username, const std::string& message);
-    static bool internalize_message(const std::string& username, const std::string& message);
+    static bool add_intrusive_thought(const std::string& username, const std::string& thought, const std::string& ad);
+    static std::string get_ad(const std::string& username, const std::string& message);
+    static std::vector<std::string> get_all_ads(const std::string& username, const std::string& message);
 
 private:
     static const char* DB_FILE;

@@ -49,13 +49,6 @@ void Server::setup_server() {
 }
 
 std::string command_01(int sock, std::string username, std::string problem, std::string solution) {
-    // cout << "Enter username: ";
-    // getline(cin, username);
-    // cout << "Enter string1: ";
-    // getline(cin, str1);
-    // cout << "Enter string2: ";
-    // getline(cin, str2);
-
     // Build command with null delimiters
     std::string send_data;
     send_data += '\x01';
@@ -197,21 +190,25 @@ void Server::handle_client(int client_socket, sockaddr_in client_address) {
         size_t space_pos = command.find(' ');
         std::string cmd = space_pos != std::string::npos ? command.substr(0, space_pos) : command;
         std::string data = space_pos != std::string::npos ? command.substr(space_pos + 1) : "";
-        if (cmd == "add" && !data.empty()) {
+        if (cmd == "intrusivethought" && !data.empty()) {
             {
+                std::vector<std::string> thought = utils::parse_delimited(data, ':');
+                if (thought.size() != 2) {
+                    send(client_socket, "Invalid command\n", 16, 0);
+                }
                 std::lock_guard<std::mutex> db_lock(this->db_mutex);
-                if (DatabaseHandler::add_message(current_user, data)) {
+                if (DatabaseHandler::add_intrusive_thought(current_user, thought[0], thought[1])) {
                     send(client_socket, "Added successfully\n", 19, 0);
                 } else {
                     send(client_socket, "Failed to add\n", 14, 0);
                 }
             }
         }
-        else if (cmd == "get" && !data.empty()) {
+        else if (cmd == "impulseintrusive" && !data.empty()) {
             std::string result;
             {
                 std::lock_guard<std::mutex> db_lock(this->db_mutex);
-                result = DatabaseHandler::get_message(current_user, data);
+                result = DatabaseHandler::get_ad(current_user, data);
             }
             
             if (!result.empty()) {
@@ -220,11 +217,11 @@ void Server::handle_client(int client_socket, sockaddr_in client_address) {
                 send(client_socket, "Not found\n", 10, 0);
             }
         }
-        else if (cmd == "getall") {
+        else if (cmd == "impulseall") {
             std::vector<std::string> result;
             {
                 std::lock_guard<std::mutex> db_lock(this->db_mutex);
-                result = DatabaseHandler::get_all_messages(current_user, data);
+                result = DatabaseHandler::get_all_ads(current_user, data);
             }
             
             if (!result.empty()) {
@@ -254,8 +251,6 @@ void Server::handle_client(int client_socket, sockaddr_in client_address) {
             int socket = ConnectionHandler::create_socket();
             ConnectionHandler::connect_to_server(socket, "neurolink", 8080);
             std::vector<std::string> ejected_concept = command_02(socket, data);
-            std::cout << "here" << std::endl;
-            std::cout << "Ejected: " + ejected_concept[1] + "=" + ejected_concept[2] << std::endl;
             // ConnectionHandler::close_socket(socket);
             std:: string send_data = "Ejected: " + ejected_concept[1] + "=" + ejected_concept[2];
             send(client_socket, send_data.c_str(), send_data.length(), 0);
