@@ -447,6 +447,7 @@ class Client:
         db_response = cursor.fetchone()
         cursor.close()
         if not db_response:
+            print("db corrupted")
             wtf()
         username = db_response[0]
         password = db_response[1]
@@ -485,7 +486,10 @@ def main():
                 client.check()
             except socket.timeout:
                 service_down()
+            except socket.error:
+                service_down()
             except Exception as e:
+                print(e)
                 wtf()
         elif args.command == "check":
             try:
@@ -493,7 +497,10 @@ def main():
                 client.check()
             except socket.timeout:
                 service_down()
+            except socket.error:
+                service_down()
             except Exception as e:
+                print(e)
                 wtf()
         else:
             pargs.error("Wrong command")
