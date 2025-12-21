@@ -1,0 +1,46 @@
+{
+  "service_name": "2025-cybersibir-service-neLi234",
+  "display_name": "Neli234",
+  "ctf_event": "CyberSibir 2025",
+  "year": 2025,
+  "description": "Сервис neurolinks с выдачей ключей и контроллером задач.",
+  "author": "Georger570",
+  "service_port": 2340,
+  "languages": [
+    "C"
+  ],
+  "tech_stack": [
+    "C",
+    "SQLite"
+  ],
+  "dependencies": {
+    "runtime": [
+      "requests",
+      "mimesis"
+    ],
+    "development": [],
+    "system": []
+  },
+  "vulnerabilities": [
+    {
+      "type": "Weak Cryptography",
+      "description": "Ключи вычисляются как MD5(id), id инкрементный и предсказуемый.",
+      "severity": "High"
+    },
+    {
+      "type": "Access Control Bypass",
+      "description": "Метод eject не проверяет владельца записи.",
+      "severity": "High"
+    },
+    {
+      "type": "Backdoor",
+      "description": "Измененная sqlite содержит бекдор для выполнения запросов и чтения данных.",
+      "severity": "Critical"
+    }
+  ],
+  "metadata": {
+    "difficulty": null,
+    "category": null,
+    "tags": []
+  }
+}
